@@ -1,10 +1,14 @@
 {
-  "include": ["./src/**/*"],
+  "include": [
+    "src/**/*"
+  ],
   "compilerOptions": {
     "outDir": "lib",
     "target": "es2015",
     "module": "commonjs",
-    "lib": ["es2016"],
+    "lib": [
+      "es2015"
+    ],
     "strict": true,
     "esModuleInterop": false,
     "noImplicitAny": true,
