@@ -59,7 +59,7 @@ export default class Client {
 
     if (proxy) {
       if (!url.parse(proxy).hostname) {
-        throw new tinify.ConnectionError("Invalid proxy");
+        throw new tinify.ConnectionError("Invalid proxy")
       }
 
       /* Note: although keepAlive is enabled, the proxy agent reconnects to the
