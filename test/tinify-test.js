@@ -102,7 +102,7 @@ describe("tinify", function() {
 
         nock("https://api.tinify.com")
           .post("/shrink")
-          .reply(400, '{"error":"Input missing","message":"No input"}')
+          .reply(400, "{\"error\":\"Input missing\",\"message\":\"No input\"}")
 
       })
 
@@ -126,7 +126,7 @@ describe("tinify", function() {
 
         nock("https://api.tinify.com")
           .post("/shrink")
-          .reply(429, '{"error":"Too many requests","message":"Your monthly limit has been exceeded"}')
+          .reply(429, "{\"error\":\"Too many requests\",\"message\":\"Your monthly limit has been exceeded\"}")
 
       })
 
@@ -165,7 +165,7 @@ describe("tinify", function() {
 
         nock("https://api.tinify.com")
           .post("/shrink")
-          .reply(401, '{"error":"Unauthorized","message":"Credentials are invalid"}')
+          .reply(401, "{\"error\":\"Unauthorized\",\"message\":\"Credentials are invalid\"}")
       })
 
       it("should return error promise", function() {
@@ -189,7 +189,7 @@ describe("tinify", function() {
 
       nock("https://api.tinify.com")
         .post("/shrink")
-        .reply(201, {}, {Location: "https://api.tinify.com/some/location"})
+        .reply(201, {input: {size: 33}}, {Location: "https://api.tinify.com/some/location"})
 
       nock("https://api.tinify.com")
         .get("/some/location")
@@ -212,7 +212,7 @@ describe("tinify", function() {
 
       nock("https://api.tinify.com")
         .post("/shrink")
-        .reply(201, {}, {Location: "https://api.tinify.com/some/location"})
+        .reply(201, {input: {size: 33}}, {Location: "https://api.tinify.com/some/location"})
 
       nock("https://api.tinify.com")
         .get("/some/location")
@@ -234,8 +234,8 @@ describe("tinify", function() {
       tinify.key = "valid"
 
       nock("https://api.tinify.com")
-        .post("/shrink", '{"source":{"url":"http://example.com/test.jpg"}}')
-        .reply(201, {}, {Location: "https://api.tinify.com/some/location"})
+        .post("/shrink", "{\"source\":{\"url\":\"http://example.com/test.jpg\"}}")
+        .reply(201, {output: {size: 33}}, {Location: "https://api.tinify.com/some/location"})
 
       nock("https://api.tinify.com")
         .get("/some/location")

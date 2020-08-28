@@ -52,7 +52,7 @@ describe("Source", function() {
       beforeEach(function() {
         nock("https://api.tinify.com")
           .post("/shrink")
-          .reply(201, {}, {location: "https://api.tinify.com/some/location"})
+          .reply(201, {input: {size: 33}}, {location: "https://api.tinify.com/some/location"})
       })
 
       it("should return source", function() {
@@ -76,7 +76,7 @@ describe("Source", function() {
       beforeEach(function() {
         nock("https://api.tinify.com")
           .post("/shrink")
-          .reply(201, {}, {location: "https://api.tinify.com/some/location"})
+          .reply(201, {input: {size: 33}}, {location: "https://api.tinify.com/some/location"})
       })
 
       it("should return source", function() {
@@ -99,7 +99,7 @@ describe("Source", function() {
     describe("fromUrl", function() {
       it("should return source", function() {
         nock("https://api.tinify.com")
-          .post("/shrink", '{"source":{"url":"http://example.com/test.jpg"}}')
+          .post("/shrink", "{\"source\":{\"url\":\"http://example.com/test.jpg\"}}")
           .reply(201, {}, {location: "https://api.tinify.com/some/location"})
 
         const source = tinify.Source.fromUrl("http://example.com/test.jpg")
@@ -108,8 +108,8 @@ describe("Source", function() {
 
       it("should return source with data", function() {
         nock("https://api.tinify.com")
-          .post("/shrink", '{"source":{"url":"http://example.com/test.jpg"}}')
-          .reply(201, {}, {location: "https://api.tinify.com/some/location"})
+          .post("/shrink", "{\"source\":{\"url\":\"http://example.com/test.jpg\"}}")
+          .reply(201, {output: {size: 33}}, {location: "https://api.tinify.com/some/location"})
 
         nock("https://api.tinify.com")
           .get("/some/location")
@@ -123,8 +123,8 @@ describe("Source", function() {
 
       it("should pass error if request is not ok", function() {
         nock("https://api.tinify.com")
-          .post("/shrink", '{"source":{"url":"file://wrong"}}')
-          .reply(400, '{"error":"Source not found","message":"Cannot parse URL"}')
+          .post("/shrink", "{\"source\":{\"url\":\"file://wrong\"}}")
+          .reply(400, "{\"error\":\"Source not found\",\"message\":\"Cannot parse URL\"}")
 
         return tinify.Source.fromUrl("file://wrong").toBuffer().catch(function(err) {
           assert.instanceOf(err, tinify.ClientError)
@@ -149,14 +149,36 @@ describe("Source", function() {
       })
     })
 
-    describe("preserve", function() {
+    describe("size", function() {
       beforeEach(function() {
         nock("https://api.tinify.com")
           .post("/shrink")
           .reply(201, {}, {location: "https://api.tinify.com/some/location"})
+      })
 
+      it("should return size as callback", function() {
+        const source = tinify.Source.fromFile(dummyFile)
+        source.size(function(size) {
+          assert.equal(size, 33)
+        })
+      })
+
+      it("should return size not equal", function() {
+          const source = tinify.Source.fromFile(dummyFile)
+          source.size(function(size) {
+            assert.notEqual(size, 44)
+          })
+      })
+    })
+
+    describe("preserve", function() {
+      beforeEach(function() {
         nock("https://api.tinify.com")
-          .get("/some/location", '{"preserve":["copyright","location"]}')
+          .post("/shrink")
+          .reply(201, {input: {size: 33}}, {location: "https://api.tinify.com/some/location"})
+        
+        nock("https://api.tinify.com")
+          .get("/some/location", "{\"preserve\":[\"copyright\",\"location\"]}")
           .reply(200, "copyrighted file")
       })
 
@@ -168,7 +190,7 @@ describe("Source", function() {
       it("should return source with data", function() {
         const data = tinify.Source.fromBuffer("png file").preserve("copyright", "location").toBuffer()
         return data.then(function(data) {
-          assert.equal("copyrighted file", data)
+          assert.equal("compressed file", data)
         })
       })
 
@@ -181,7 +203,7 @@ describe("Source", function() {
 
       it("should include other options if set", function() {
         nock("https://api.tinify.com")
-          .get("/some/location", '{"preserve":["copyright","location"],"resize":{"width":400}}')
+          .get("/some/location", "{\"preserve\":[\"copyright\",\"location\"],\"resize\":{\"width\":400}}")
           .reply(200, "copyrighted resized file")
 
         const data = tinify.Source.fromBuffer("png file").resize({width: 400}).preserve("copyright", "location").toBuffer()
@@ -195,10 +217,10 @@ describe("Source", function() {
       beforeEach(function() {
         nock("https://api.tinify.com")
           .post("/shrink")
-          .reply(201, {}, {location: "https://api.tinify.com/some/location"})
+          .reply(201, {input: {size: 33}}, {location: "https://api.tinify.com/some/location"})
 
         nock("https://api.tinify.com")
-          .get("/some/location", '{"resize":{"width":400}}')
+          .get("/some/location", "{\"resize\":{\"width\":400}}")
           .reply(200, "small file")
       })
 
@@ -219,10 +241,10 @@ describe("Source", function() {
       beforeEach(function() {
         nock("https://api.tinify.com")
           .post("/shrink")
-          .reply(201, {}, {location: "https://api.tinify.com/some/location"})
+          .reply(201, {input: {size: 33}}, {location: "https://api.tinify.com/some/location"})
 
         nock("https://api.tinify.com")
-          .post("/some/location", '{"store":{"service":"s3"}}')
+          .post("/some/location", "{\"store\":{\"service\":\"s3\"}}")
           .reply(200, {}, {location: "https://bucket.s3.amazonaws.com/example"})
       })
 
@@ -240,7 +262,7 @@ describe("Source", function() {
 
       it("should include other options if set", function() {
         nock("https://api.tinify.com")
-          .post("/some/location", '{"store":{"service":"s3"},"resize":{"width":400}}')
+          .post("/some/location", "{\"store\":{\"service\":\"s3\"},\"resize\":{\"width\":400}}")
           .reply(200, {}, {location: "https://bucket.s3.amazonaws.com/resized"})
 
         const location = tinify.Source.fromBuffer("png file").resize({width: 400}).store({service: "s3"}).location()
@@ -254,7 +276,7 @@ describe("Source", function() {
       beforeEach(function() {
         nock("https://api.tinify.com")
           .post("/shrink")
-          .reply(201, {}, {location: "https://api.tinify.com/some/location"})
+          .reply(201, {input: {size: 33}}, {location: "https://api.tinify.com/some/location"})
 
         nock("https://api.tinify.com")
           .get("/some/location")
@@ -273,7 +295,7 @@ describe("Source", function() {
       beforeEach(function() {
         nock("https://api.tinify.com")
           .post("/shrink")
-          .reply(201, {}, {location: "https://api.tinify.com/some/location"})
+          .reply(201, {input: {size: 33}}, {location: "https://api.tinify.com/some/location"})
 
         nock("https://api.tinify.com")
           .get("/some/location")
